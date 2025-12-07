@@ -7,7 +7,7 @@ import {useInView} from 'react-intersection-observer';
 // utils
 import PropTypes from 'prop-types';
 
-const Spring = ({children, index = 1, className, type = 'fade', ...props}) => {
+const Spring = ({children, index = 1, className, type = 'fade', isCompact, ...props}) => {
     const [ref, inView] = useInView({
         threshold: 0,
         triggerOnce: true
@@ -54,7 +54,7 @@ const Spring = ({children, index = 1, className, type = 'fade', ...props}) => {
     }
 
     return (
-        <animated.div className={className ? className : ''} style={spring[type]} ref={ref}>
+        <animated.div className={className ? className : ''} style={spring[type]} ref={ref} {...props}>
             {children}
         </animated.div>
     )

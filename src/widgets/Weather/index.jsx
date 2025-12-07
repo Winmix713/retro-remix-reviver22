@@ -18,7 +18,7 @@ import axios from 'axios';
 import WEATHER_CODES from '@constants/weather';
 
 // dayjs plugins
-const isBetween = require('dayjs/plugin/isBetween')
+import isBetween from 'dayjs/plugin/isBetween';
 dayjs.extend(isBetween)
 
 const Weather = () => {

@@ -1,87 +1,174 @@
-// components
-import { Responsive } from 'react-grid-layout'; // Removed WidthProvider (not needed with SizeMe)
-import { SizeMe } from 'react-sizeme'; // Changed from withSize to SizeMe
-import { Fragment } from 'react';
-
-// layouts
-import layouts from '../layouts';
-
-// hooks
-import { useThemeProvider } from '@contexts/themeContext';
+import React, { useState, useEffect } from 'react';
+import { Responsive, WidthProvider } from 'react-grid-layout';
+import { useResizeDetector } from 'react-resize-detector';
 import { useWindowSize } from 'react-use';
-// Removed useMemo as we don't need to construct HOCs anymore
-
-// utils
 import PropTypes from 'prop-types';
 
+// Hooks
+import { useTheme } from '@contexts/themeContext';
+
+// Layouts
+import layouts from '../layouts';
+
+// WidthProvider wrapper a Responsive komponenshez
+const ResponsiveGridLayout = WidthProvider(Responsive);
+
+/**
+ * Grid konfiguráció konstansok
+ */
+const GRID_CONFIG = {
+  breakpoints: {
+    xl: 1500,
+    lg: 1280,
+    md: 768
+  },
+  cols: {
+    xl: 4,
+    lg: 3,
+    md: 2
+  },
+  margin: [25, 20],
+  containerPadding: [0, 0],
+  baseRowHeight: 220,
+  rowHeightMultiplier: 3
+};
+
+const MOBILE_BREAKPOINT = 768;
+const RESIZE_DEBOUNCE = 200;
+
+/**
+ * AppGrid Component - Responsive grid layout widgetekhez
+ */
 const AppGrid = ({ widgets, id }) => {
-    const { fontScale } = useThemeProvider();
-    
-    // Rename to windowWidth to avoid confusion with the grid width
-    const { width: windowWidth } = useWindowSize();
+  const { fontScale } = useTheme();
+  const { width: windowWidth } = useWindowSize();
+  const [isClient, setIsClient] = useState(false);
+  const [gridKey, setGridKey] = useState(0);
 
-    const breakpoints = {
-        md: windowWidth >= 768 && windowWidth < 1280,
-        lg: windowWidth >= 1280 && windowWidth < 1500,
-        xl: windowWidth >= 1500
+  // Client-side mounting flag (SSR fix)
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Container méret detektálás
+  const { width: containerWidth, ref: resizeRef } = useResizeDetector({
+    refreshMode: 'debounce',
+    refreshRate: RESIZE_DEBOUNCE,
+    handleWidth: true,
+    handleHeight: false
+  });
+
+  // Dinamikus row height számítás fontScale alapján
+  const rowHeight = GRID_CONFIG.baseRowHeight + 
+    (fontScale !== 1 ? fontScale * GRID_CONFIG.rowHeightMultiplier : 0);
+
+  // Grid újra-renderelés windowSize vagy fontScale változáskor
+  useEffect(() => {
+    if (isClient) {
+      setGridKey(prev => prev + 1);
     }
+  }, [windowWidth, fontScale, isClient]);
 
+  // Debug log (csak development környezetben)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('AppGrid Debug:', {
+        id,
+        windowWidth,
+        containerWidth,
+        widgetsCount: Object.keys(widgets).length,
+        fontScale,
+        rowHeight,
+        isClient
+      });
+    }
+  }, [id, windowWidth, containerWidth, widgets, fontScale, rowHeight, isClient]);
+
+  // Loading state (SSR vagy nincs még méret)
+  if (!isClient) {
     return (
-        <div className="layout">
-            {
-                windowWidth >= 768 ? (
-                    /* 
-                       SizeMe safely measures this section without using findDOMNode.
-                       It passes the explicit 'size.width' to the grid.
-                    */
-                    <SizeMe refreshMode="debounce" refreshRate={200}>
-                        {({ size }) => (
-                            /* Only render grid when we have a width to prevent layout thrashing */
-                            size.width ? (
-                                <Responsive
-                                    className="w-100"
-                                    width={size.width} // Pass width directly here
-                                    layouts={layouts[id]}
-                                    breakpoints={breakpoints}
-                                    cols={{ xl: 4, lg: 3, md: 2 }}
-                                    rowHeight={fontScale === 1 ? 220 : 220 + (fontScale * 3)}
-                                    isDraggable={false}
-                                    isResizable={false}
-                                    margin={[25, 20]}
-                                    autoSize={true}
-                                    useCSSTransforms={false}
-                                >
-                                    {
-                                        Object.keys(widgets).map(widget => (
-                                            <div key={widget}>
-                                                {widgets[widget]}
-                                            </div>
-                                        ))
-                                    }
-                                </Responsive>
-                            ) : null
-                        )}
-                    </SizeMe>
-                ) : (
-                    // Mobile View
-                    <>
-                        {
-                            Object.keys(widgets).map(widget => (
-                                <Fragment key={widget}>
-                                    {widgets[widget]}
-                                </Fragment>
-                            ))
-                        }
-                    </>
-                )
-            }
+      <div className="layout w-full min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">Loading dashboard...</p>
         </div>
-    )
-}
+      </div>
+    );
+  }
+
+  // Mobile View - Vertikális stack
+  if (windowWidth < MOBILE_BREAKPOINT) {
+    return (
+      <div className="layout w-full min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="space-y-4">
+          {Object.entries(widgets).map(([key, widget]) => (
+            <div 
+              key={key}
+              className="w-full bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden"
+            >
+              {widget}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop View - Grid layout
+  return (
+    <div 
+      ref={resizeRef}
+      className="layout w-full min-h-screen bg-gray-50 dark:bg-gray-900 p-6"
+      style={{ 
+        minHeight: '100vh',
+        position: 'relative'
+      }}
+    >
+      <ResponsiveGridLayout
+        key={gridKey}
+        className="w-full"
+        layouts={layouts[id] || {}}
+        breakpoints={GRID_CONFIG.breakpoints}
+        cols={GRID_CONFIG.cols}
+        rowHeight={rowHeight}
+        margin={GRID_CONFIG.margin}
+        containerPadding={GRID_CONFIG.containerPadding}
+        isDraggable={false}
+        isResizable={false}
+        autoSize={true}
+        useCSSTransforms={true}
+        compactType="vertical"
+        preventCollision={false}
+        measureBeforeMount={false}
+        onLayoutChange={(layout) => {
+          // Layout változás logolása (debug célra)
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Layout changed:', layout);
+          }
+        }}
+      >
+        {Object.entries(widgets).map(([key, widget]) => (
+          <div 
+            key={key}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden transition-all duration-200"
+            style={{ 
+              height: '100%',
+              width: '100%'
+            }}
+          >
+            {widget}
+          </div>
+        ))}
+      </ResponsiveGridLayout>
+    </div>
+  );
+};
 
 AppGrid.propTypes = {
-    widgets: PropTypes.object.isRequired,
-    id: PropTypes.string.isRequired
-}
+  widgets: PropTypes.objectOf(PropTypes.node).isRequired,
+  id: PropTypes.string.isRequired
+};
 
-export default AppGrid
+AppGrid.displayName = 'AppGrid';
+
+export default React.memo(AppGrid);

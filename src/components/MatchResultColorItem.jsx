@@ -20,8 +20,8 @@ const StyledItem = styled.div`
   border-radius: 4px;
   display: flex;
   flex-direction: column;
-  border-left: 4px solid ${props => `var(--${props.color1})`};
-  border-right: 4px solid ${props => `var(--${props.color2})`};
+  border-left: 4px solid ${props => `var(--${props.$color1})`};
+  border-right: 4px solid ${props => `var(--${props.$color2})`};
   box-shadow: 0 1px 8px rgba(110, 110, 110, .1);
   overflow: hidden;
 
@@ -68,7 +68,7 @@ const MatchResultColorItem = ({match, index, type = 'group', standalone = false}
 
     return (
         <Spring className="h-100" type={standalone ? 'fade' : 'slideUp'} index={index}>
-            <StyledItem className={match.active ? 'active' : ''} color1={match.team1.color} color2={match.team2.color}>
+            <StyledItem className={match.active ? 'active' : ''} $color1={match.team1.color} $color2={match.team2.color}>
                 <div className="main d-flex align-items-center justify-content-between">
                     {
                         type === 'group' ?

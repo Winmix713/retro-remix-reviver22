@@ -18,18 +18,18 @@ const ListItem = styled.div`
   }
 
   .progressbar {
-    height: ${props => props.barHeight}px;
+    height: ${props => props.$barHeight}px;
     width: 6px;
 
     .MuiLinearProgress-bar {
-      transform: translateY(${props => 100 - props.value}%) !important;
+      transform: translateY(${props => 100 - props.$value}%) !important;
     }
   }
 `
 
 const LabeledProgress = ({label, value, barHeight = 110, barColor = 'azure', trackColor}) => {
     return (
-        <ListItem value={value} barHeight={barHeight}>
+        <ListItem $value={value} $barHeight={barHeight}>
             <Progress value={value} barColor={barColor} trackColor={trackColor}/>
             <h6 className="label">{label}</h6>
         </ListItem>

@@ -1,6 +1,10 @@
-// components
+import { useMemo } from 'react';
+
+// layout components
 import PageHeader from "@layout/PageHeader";
 import AppGrid from "@layout/AppGrid";
+
+// widgets
 import PlayerProfileCard from "@widgets/PlayerProfileCard";
 import TrainingPaceChart from "@widgets/TrainingPaceChart";
 import GamesCalendar from "@widgets/GamesCalendar";
@@ -10,18 +14,18 @@ import LatestMessages from "@widgets/LatestMessages";
 import HotField from "@widgets/HotField";
 import ChampionsLeague from "@widgets/ChampionsLeague";
 
-const widgets = {
-    profile_card: <PlayerProfileCard />,
-    training_pace: <TrainingPaceChart />,
-    calendar: <GamesCalendar />,
-    shots: <ShotsStats />,
-    planner: <TrainingsPlanner />,
-    messages: <LatestMessages />,
-    field: <HotField />,
-    champions: <ChampionsLeague />,
-};
-
 const PlayerProfile = () => {
+    const widgets = useMemo(() => ({
+        profile_card: <PlayerProfileCard />,
+        training_pace: <TrainingPaceChart />,
+        calendar: <GamesCalendar />,
+        shots: <ShotsStats />,
+        planner: <TrainingsPlanner />,
+        messages: <LatestMessages />,
+        field: <HotField />,
+        champions: <ChampionsLeague />,
+    }), []);
+
     return (
         <>
             <PageHeader title="Player Profile" />

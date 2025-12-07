@@ -77,21 +77,26 @@ const PlayerSpeed = () => {
                                 const asValue = gauge.angleToValue(angle);
                                 const showText = asValue === 20 || asValue === 80 || asValue === 50;
 
+                                const { key: tickKey, ...tickProps } = gauge.getTickProps({ angle, length: showText ? 12 : 6 });
+
                                 return (
                                     <Fragment key={`tick-group-${angle}`}>
                                         <line
                                             stroke="var(--border)"
                                             strokeWidth={2}
-                                            {...gauge.getTickProps({ angle, length: showText ? 12 : 6 })}
+                                            {...tickProps}
                                         />
-                                        {showText && (
-                                            <text
-                                                className="text-sm fill-gray-400 font-medium"
-                                                {...gauge.getLabelProps({ angle, offset: 20 })}
-                                            >
-                                                {asValue}
-                                            </text>
-                                        )}
+                                        {showText && (() => {
+                                            const { key: labelKey, ...labelProps } = gauge.getLabelProps({ angle, offset: 20 });
+                                            return (
+                                                <text
+                                                    className="text-sm fill-gray-400 font-medium"
+                                                    {...labelProps}
+                                                >
+                                                    {asValue}
+                                                </text>
+                                            )
+                                        })()}
                                     </Fragment>
                                 );
                             })}

@@ -1,5 +1,8 @@
 /* global template styles */
 
+/* ← FONT IMPORT A TETEJÉN */
+@import '@fonts/icomoon.css';
+
 html {
     user-select: none;
     font-size: calc(100% * var(--font-scale));
@@ -61,7 +64,6 @@ body {
     @media screen and (min-width: 1920px) {
         display: grid;
         grid-template-columns: minmax(0, 250px) minmax(0, (calc(100% - 250px)));
-
 
         .app_container {
             margin: 30px 40px 40px;
